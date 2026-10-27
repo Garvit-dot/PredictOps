@@ -1,4 +1,4 @@
-﻿name: PredictOps CI
+﻿name: PredictOps CI/CD
 
 on:
   push:
@@ -9,6 +9,11 @@ on:
 
 permissions:
   contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: predictops-api
 
 jobs:
   test-and-build:
@@ -36,3 +41,26 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t predictops-api:local .
+
+      - name: Configure AWS credentials using OIDC
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag and push Docker image
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker tag predictops-api:local "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker tag predictops-api:local "$REGISTRY/$ECR_REPOSITORY:latest"
+          docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$REGISTRY/$ECR_REPOSITORY:latest"

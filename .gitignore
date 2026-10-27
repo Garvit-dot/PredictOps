@@ -1,0 +1,37 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+
+# DVC local cache and machine-specific config
+.dvc/cache/
+.dvc/config.local
+
+# Local datasets and generated reports
+data/
+reports/
+notebooks/.ipynb_checkpoints/
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Python virtual environments
+.venv/
+.venv*/
+venv/
+venv*/

@@ -1,0 +1,15 @@
+
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.git/
+.dvc/cache/
+data/
+reports/
+tests/
+notebooks/
+*.pyc
+.env
+.env.*
+!.env.example

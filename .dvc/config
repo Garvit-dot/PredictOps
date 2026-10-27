@@ -1,0 +1,5 @@
+[core]
+    remote = storage
+['remote "storage"']
+    url = s3://predictops-dvc-100038279359-ap-south-1/predictops
+    profile = predictops-dev

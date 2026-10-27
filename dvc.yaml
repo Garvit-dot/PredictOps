@@ -1,0 +1,57 @@
+
+stages:
+  preprocess:
+    cmd: >-
+      python -m predictops.preprocess
+      --input ${data.input}
+      --output-dir ${data.output_dir}
+      --test-size ${split.test_size}
+      --validation-size ${split.validation_size}
+      --random-state ${split.random_state}
+    deps:
+      - src/predictops/preprocess.py
+      - ${data.input}
+    params:
+      - data.input
+      - data.output_dir
+      - split
+    outs:
+      - data/processed/train.csv
+      - data/processed/validation.csv
+      - data/processed/test.csv
+
+  train:
+    cmd: >-
+      python -m predictops.train
+      --data-dir data/processed
+      --model-dir models
+      --metrics reports/metrics.json
+      --threshold ${training.threshold}
+    deps:
+      - src/predictops/train.py
+      - data/processed/train.csv
+      - data/processed/validation.csv
+    params:
+      - training
+    outs:
+      - models/best_model.joblib
+    metrics:
+      - reports/metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: >-
+      python -m predictops.evaluate
+      --data-dir data/processed
+      --model models/best_model.joblib
+      --output reports/test_metrics.json
+      --threshold ${training.threshold}
+    deps:
+      - src/predictops/evaluate.py
+      - data/processed/test.csv
+      - models/best_model.joblib
+    params:
+      - training.threshold
+    metrics:
+      - reports/test_metrics.json:
+          cache: false

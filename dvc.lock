@@ -1,0 +1,95 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python -m predictops.preprocess --input data/raw/ai4i2020.csv 
+      --output-dir data/processed --test-size 0.15 --validation-size 0.15 
+      --random-state 42
+    deps:
+    - path: data/raw/ai4i2020.csv
+      hash: md5
+      md5: 1fdfac88fff4b734f7beebdb5f7ed029
+      size: 523890
+    - path: src/predictops/preprocess.py
+      hash: md5
+      md5: d209882b34ad5259b0f5eceffcfaad09
+      size: 3235
+    params:
+      params.yaml:
+        data.input: data/raw/ai4i2020.csv
+        data.output_dir: data/processed
+        split:
+          test_size: 0.15
+          validation_size: 0.15
+          random_state: 42
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: d95b5e401c8917116b8f87e98d54bf95
+      size: 45857
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 975a98b160e3e24d18503989bfb52103
+      size: 213486
+    - path: data/processed/validation.csv
+      hash: md5
+      md5: d1f5f97f6d194bb8d7b79d6d4961e982
+      size: 45802
+  train:
+    cmd: python -m predictops.train --data-dir data/processed --model-dir models
+      --metrics reports/metrics.json --threshold 0.5
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 975a98b160e3e24d18503989bfb52103
+      size: 213486
+    - path: data/processed/validation.csv
+      hash: md5
+      md5: d1f5f97f6d194bb8d7b79d6d4961e982
+      size: 45802
+    - path: src/predictops/train.py
+      hash: md5
+      md5: c1839d7a7013c80d408cc73dcf488308
+      size: 5489
+    params:
+      params.yaml:
+        training:
+          models:
+          - logistic_regression
+          - random_forest
+          - xgboost
+          selection_metric: pr_auc
+          threshold: 0.5
+    outs:
+    - path: models/best_model.joblib
+      hash: md5
+      md5: 886a2afc129509c31ca3266f752d3850
+      size: 448315
+    - path: reports/metrics.json
+      hash: md5
+      md5: a1717745c22e020fee31c8f8c2aef896
+      size: 777
+  evaluate:
+    cmd: python -m predictops.evaluate --data-dir data/processed --model 
+      models/best_model.joblib --output reports/test_metrics.json --threshold 
+      0.5
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: d95b5e401c8917116b8f87e98d54bf95
+      size: 45857
+    - path: models/best_model.joblib
+      hash: md5
+      md5: 886a2afc129509c31ca3266f752d3850
+      size: 448315
+    - path: src/predictops/evaluate.py
+      hash: md5
+      md5: 0dd5c401af9eef6faf1648c56cee56a9
+      size: 1852
+    params:
+      params.yaml:
+        training.threshold: 0.5
+    outs:
+    - path: reports/test_metrics.json
+      hash: md5
+      md5: ab3b341ed0f9af8299951bea942e1979
+      size: 326

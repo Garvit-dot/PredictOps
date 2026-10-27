@@ -1,0 +1,17 @@
+
+data:
+  input: data/raw/ai4i2020.csv
+  output_dir: data/processed
+
+split:
+  test_size: 0.15
+  validation_size: 0.15
+  random_state: 42
+
+training:
+  models:
+    - logistic_regression
+    - random_forest
+    - xgboost
+  selection_metric: pr_auc
+  threshold: 0.5
